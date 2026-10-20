@@ -6,7 +6,6 @@ import {
   useRouter,
   HeadContent,
   Scripts,
-  type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
@@ -35,7 +34,7 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: ErrorComponentProps) {
+function ErrorComponent({ error, reset }: import("@tanstack/react-router").ErrorComponentProps) {
   console.error(error);
   const router = useRouter();
   useEffect(() => {
@@ -79,20 +78,24 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { name: "description", content: "amsmart is a Learning Management System web application for all online learners." },
       { name: "author", content: "Lovable" },
       { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:description", content: "amsmart is a Learning Management System web application for all online learners." },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Lovable App" },
+      { name: "twitter:description", content: "amsmart is a Learning Management System web application for all online learners." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/60dc677e-602a-47b8-a0d9-0953e637aca3/id-preview-f7702da7--f8aba4fc-7878-470f-8927-05d99c185ae1.lovable.app-1781633614278.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/60dc677e-602a-47b8-a0d9-0953e637aca3/id-preview-f7702da7--f8aba4fc-7878-470f-8927-05d99c185ae1.lovable.app-1781633614278.png" },
     ],
     links: [
       {
         rel: "stylesheet",
         href: appCss,
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "manifest", href: "/manifest.webmanifest" },
     ],
   }),
   shellComponent: RootShell,
@@ -121,7 +124,25 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <AppShell>
+        <Outlet />
+      </AppShell>
     </QueryClientProvider>
+  );
+}
+
+// AppProvider + TimerProvider are client-only (IndexedDB / window APIs).
+// Lazy-mount them so SSR/prerender of public routes never executes their effects.
+import { lazy, Suspense } from "react";
+const AppProviders = lazy(() => import("@/components/AppProviders"));
+
+function AppShell({ children }: { children: ReactNode }) {
+  // Render the same tree on SSR and client to avoid hydration mismatch.
+  // The lazy AppProviders chunk only resolves on the client; until then
+  // children render bare via the Suspense fallback.
+  return (
+    <Suspense fallback={<>{children}</>}>
+      <AppProviders>{children}</AppProviders>
+    </Suspense>
   );
 }
