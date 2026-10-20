@@ -1,0 +1,1053 @@
+export type UserRole = 'student' | 'teacher' | 'admin';
+
+export interface ResetRequest {
+  status: 'pending' | 'approved' | 'denied' | 'approved_used';
+  requested_at: string;
+  reason?: string;
+  risk_level?: string;
+  temp_password?: string;
+  approved_at?: string;
+  expires_at?: string;
+  denial_reason?: string;
+}
+
+export interface User {
+  id: string;
+  sessionId?: string; // Internal: token hash
+  email: string;
+  full_name: string;
+  role: UserRole;
+  phone?: string;
+  password?: string;
+  created_at: string;
+  updated_at?: string;
+  last_login?: string;
+  failed_attempts?: number;
+  lockouts?: number;
+  flagged?: boolean;
+  locked_until?: string | null;
+  reset_request?: ResetRequest | null;
+  notification_preferences?: Record<string, boolean>;
+  active?: boolean;
+  password_change_required?: boolean;
+  version?: number;
+  metadata?: Record<string, any>;
+}
+
+export interface UserDTO {
+  id: string;
+  email: string;
+  full_name: string;
+  role: UserRole;
+  phone?: string;
+  created_at: string;
+  updated_at?: string;
+  active?: boolean;
+  password_change_required?: boolean;
+  notification_preferences?: Record<string, boolean>;
+  metadata?: Record<string, any>;
+  flagged?: boolean;
+  last_login?: string;
+  failed_attempts?: number;
+  lockouts?: number;
+  locked_until?: string | null;
+  reset_request?: ResetRequest | null;
+  version?: number;
+}
+
+export interface AuthResponseDTO {
+  success: boolean;
+  user: UserDTO | null;
+  error?: string | null;
+}
+
+export interface ApiResponse<T = unknown> {
+  success: boolean;
+  data?: T;
+  error?: string;
+}
+
+export interface LoginRequestDTO {
+  email: string;
+  password?: string;
+}
+
+export interface SignupRequestDTO {
+  email: string;
+  password: string;
+  confirmPassword: string;
+  full_name: string;
+  role: UserRole;
+  phone?: string;
+}
+
+export interface Course {
+  id: string;
+  enrollment_id?: string;
+  created_by?: string;
+  title: string;
+  description?: string;
+  status: 'draft' | 'published' | 'archived';
+  teacher_id: string;
+  max_enrollment?: number;
+  thumbnail_url?: string;
+  created_at?: string;
+  updated_at?: string;
+  version?: number;
+  metadata?: Record<string, any>;
+}
+
+// CourseDTO is an alias for Course to maintain backward compatibility
+export type CourseDTO = Course;
+
+export interface Enrollment {
+  course_id: string;
+  student_id: string;
+  enrolled_at?: string;
+  progress: number;
+  completed: boolean;
+  courses?: Course;
+  users?: User;
+}
+
+export interface EnrollmentDTO {
+  course_id: string;
+  student_id: string;
+  enrolled_at?: string;
+  progress: number;
+  completed: boolean;
+  course?: CourseDTO;
+  student?: UserDTO;
+}
+
+export interface Lesson {
+  id: string;
+  course_id: string;
+  title: string;
+  content: string;
+  video_url?: string;
+  order_index: number;
+  version?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// LessonDTO is an alias for Lesson to maintain backward compatibility
+export type LessonDTO = Lesson;
+
+export interface Attachment {
+  name: string;
+  url: string;
+  type: string;
+  size?: number;
+}
+
+// AttachmentDTO is an alias for Attachment to maintain backward compatibility
+export type AttachmentDTO = Attachment;
+
+/**
+ * A working group defined on a group assignment. Membership is stored on the
+ * assignment itself (`assignments.groups`), and submissions are tied to a
+ * group through `submissions.group_id`.
+ */
+export interface AssignmentGroup {
+  id: string;
+  name: string;
+  /** Student ids that belong to this group. */
+  member_ids: string[];
+  /** Group leader. Must be one of `member_ids`. */
+  leader_id?: string | null;
+}
+
+export type AssignmentType = 'individual' | 'group';
+
+export interface Assignment {
+  id: string;
+  course_id: string;
+  teacher_id: string;
+  title: string;
+  description?: string;
+  start_at?: string;
+  due_date: string;
+  status: 'draft' | 'published';
+  points_possible: number;
+  allow_late_submissions: boolean;
+  anti_cheat_enabled: boolean;
+  hard_enforcement: boolean;
+  regrade_requests_enabled: boolean;
+  late_penalty_applied?: number; // Added from Submission
+  late_penalty_per_day?: number;
+  allowed_extensions?: string[];
+  created_at?: string;
+  updated_at?: string;
+  version?: number;
+  questions: AssignmentQuestion[];
+  attachments?: Attachment[];
+  /** 'group' assignments are scoped to the groups listed in `groups`. */
+  assignment_type?: AssignmentType;
+  groups?: AssignmentGroup[];
+  metadata?: Record<string, any>;
+  courses?: Course;
+}
+
+export interface QuestionDTO {
+  id: string;
+  text: string;
+  type: 'mcq' | 'tf' | 'short' | 'essay' | 'file' | 'link';
+  /** Assignment-only: allowed submission modes when multiple are permitted. */
+  types?: ('essay' | 'file' | 'link')[];
+  points: number;
+  options?: string[];
+  correct_answer?: string | number;
+  hint?: string;
+  explanation?: string;
+  extensions?: string;
+}
+
+export interface AssignmentDTO {
+  id: string;
+  course_id: string;
+  teacher_id: string;
+  title: string;
+  description?: string;
+  start_at?: string;
+  due_date: string;
+  status: 'draft' | 'published';
+  points_possible: number;
+  allow_late_submissions: boolean;
+  late_penalty_per_day?: number;
+  allowed_extensions?: string[];
+  anti_cheat_enabled: boolean;
+  hard_enforcement: boolean;
+  regrade_requests_enabled: boolean;
+  questions: QuestionDTO[];
+  attachments?: AttachmentDTO[];
+  /** 'group' assignments are scoped to the groups listed in `groups`. */
+  assignment_type?: AssignmentType;
+  groups?: AssignmentGroup[];
+  course?: CourseDTO;
+  version?: number;
+  created_at?: string;
+  updated_at?: string;
+  metadata?: Record<string, any>;
+}
+
+export interface AssignmentQuestion {
+  id: string;
+  text: string;
+  /** Legacy single-mode field. Prefer `types` for new questions. */
+  type: 'essay' | 'file' | 'link';
+  /** Allowed submission modes. If set and length > 1, students may choose. */
+  types?: ('essay' | 'file' | 'link')[];
+  points: number;
+  correct_answer?: string | number;
+  extensions?: string;
+}
+
+export interface Quiz {
+  id: string;
+  course_id: string;
+  teacher_id: string;
+  title: string;
+  description?: string;
+  status: 'draft' | 'published';
+  attempts_allowed: number;
+  time_limit: number;
+  passing_score: number;
+  anti_cheat_enabled: boolean;
+  hard_enforcement: boolean;
+  shuffle_questions: boolean;
+  start_at?: string;
+  end_at?: string;
+  created_at?: string;
+  updated_at?: string;
+  version?: number;
+  questions: QuizQuestion[];
+  metadata?: Record<string, any>;
+  courses?: Course;
+}
+
+export interface QuizDTO {
+  id: string;
+  course_id: string;
+  teacher_id: string;
+  title: string;
+  description?: string;
+  status: 'draft' | 'published';
+  attempts_allowed: number;
+  time_limit: number;
+  passing_score: number;
+  anti_cheat_enabled: boolean;
+  hard_enforcement: boolean;
+  shuffle_questions: boolean;
+  start_at?: string;
+  end_at?: string;
+  questions: QuestionDTO[];
+  course?: CourseDTO;
+  version?: number;
+  created_at?: string;
+  updated_at?: string;
+  metadata?: Record<string, any>;
+}
+
+export interface QuizQuestion {
+  id: string;
+  text: string;
+  type: 'mcq' | 'tf' | 'short';
+  points: number;
+  options?: string[];
+  correct_answer?: string | number;
+  hint?: string;
+  explanation?: string;
+}
+
+export interface Submission {
+  id: string;
+  assignment_id: string;
+  student_id: string;
+  /** Set for group assignments: the group this submission belongs to. */
+  group_id?: string | null;
+  submitted_at: string;
+  updated_at?: string;
+  submission_text?: string;
+  file_url?: string;
+  answers?: Record<string, string | number | boolean | { mode: 'essay' | 'file' | 'link'; value: string }>;
+  question_scores?: Record<string, number>;
+  response_feedback?: Record<string, string>;
+  late_penalty_applied?: number;
+  attachments?: Attachment[];
+  status: 'draft' | 'submitted' | 'graded' | 'returned';
+  grade?: number;
+  final_grade?: number;
+  feedback?: string;
+  regrade_request?: string | null;
+  graded_at?: string;
+  violation_count?: number;
+  version?: number;
+  assignments?: Assignment;
+  users?: {
+    id: string;
+    full_name: string;
+    email: string;
+  };
+}
+
+export interface SubmissionDTO {
+  id: string;
+  assignment_id: string;
+  student_id: string;
+  /** Set for group assignments: the group this submission belongs to. */
+  group_id?: string | null;
+  submitted_at: string;
+  updated_at?: string;
+  status: 'draft' | 'submitted' | 'graded' | 'returned';
+  grade?: number;
+  final_grade?: number;
+  late_penalty_applied?: number;
+  feedback?: string;
+  regrade_request?: string | null;
+  submission_text?: string;
+  file_url?: string;
+  answers?: Record<string, string | number | boolean | { mode: 'essay' | 'file' | 'link'; value: string }>;
+  question_scores?: Record<string, number>;
+  response_feedback?: Record<string, string>;
+  violation_count?: number;
+  graded_at?: string;
+  version?: number;
+  assignment?: AssignmentDTO;
+  student?: UserDTO;
+}
+
+export interface QuizSubmission {
+  id: string;
+  quiz_id: string;
+  student_id: string;
+  score: number;
+  total_points: number;
+  answers: Record<string, string | number | boolean>;
+  analytics?: Record<string, string | number | boolean>;
+  status: 'in progress' | 'submitted';
+  time_spent: number;
+  started_at: string;
+  submitted_at: string;
+  updated_at?: string;
+  violation_count?: number;
+  version?: number;
+  attempt_number?: number;
+  quizzes?: Quiz;
+  users?: {
+    id: string;
+    full_name: string;
+    email: string;
+  };
+}
+
+export interface QuizSubmissionDTO {
+  id: string;
+  quiz_id: string;
+  student_id: string;
+  score: number;
+  total_points: number;
+  status: 'in progress' | 'submitted';
+  time_spent: number;
+  started_at: string;
+  answers?: Record<string, string | number | boolean>;
+  submitted_at: string;
+  updated_at?: string;
+  violation_count?: number;
+  attempt_number?: number;
+  version?: number;
+  quiz?: QuizDTO;
+  student?: UserDTO;
+}
+
+export interface Notification {
+  id: string;
+  user_id: string;
+  broadcast_id?: string;
+  title: string;
+  message: string;
+  link?: string;
+  type: string;
+  is_read: boolean;
+  viewed_at?: string;
+  dismissed_at?: string;
+  acknowledged_at?: string;
+  expires_at?: string;
+  metadata?: Record<string, any>;
+  created_at: string;
+}
+
+export interface NotificationDTO {
+  id: string;
+  user_id: string;
+  broadcast_id?: string;
+  title: string;
+  message: string;
+  link?: string;
+  type: string;
+  is_read: boolean;
+  viewed_at?: string;
+  dismissed_at?: string;
+  acknowledged_at?: string;
+  expires_at?: string;
+  metadata?: Record<string, any>;
+  created_at: string;
+  version?: number;
+  updated_at?: string;
+}
+
+export interface Session {
+  id: string;
+  user_id: string;
+  created_at: string;
+  expires_at: string;
+  user_agent?: string;
+  ip_address?: string;
+}
+
+export interface Broadcast {
+  id: string;
+  course_id: string | null;
+  target_role?: string | null;
+  title: string;
+  message: string;
+  link?: string;
+  type: string;
+  expires_at?: string;
+  version?: number;
+  created_at: string;
+}
+
+export interface BroadcastDTO {
+  id: string;
+  course_id: string | null;
+  target_role?: string | null;
+  title: string;
+  message: string;
+  link?: string;
+  type: string;
+  expires_at?: string;
+  created_at: string;
+  version?: number;
+  updated_at?: string;
+}
+
+export interface Maintenance {
+  id: string;
+  enabled: boolean;
+  manual_until?: string;
+  message?: string;
+  schedules: MaintenanceSchedule[];
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface MaintenanceSchedule {
+  start_at: string;
+  end_at: string;
+  reason?: string;
+}
+
+export interface MaintenanceDTO {
+  id: string;
+  enabled: boolean;
+  message?: string;
+  schedules: MaintenanceSchedule[];
+  updated_at?: string;
+}
+
+export interface PlannerItem {
+  id: string;
+  user_id: string;
+  title: string;
+  description?: string;
+  due_date: string;
+  priority: 'low' | 'medium' | 'high';
+  completed: boolean;
+  version?: number;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface PlannerItemDTO {
+  id: string;
+  user_id: string;
+  title: string;
+  description?: string;
+  due_date: string;
+  priority: 'low' | 'medium' | 'high';
+  completed: boolean;
+  created_at: string;
+  updated_at?: string;
+  version?: number;
+}
+
+export interface LessonCompletion {
+  id: string;
+  student_id: string;
+  lesson_id: string;
+  completed_at: string;
+}
+
+export interface LiveClass {
+  id: string;
+  course_id: string;
+  teacher_id: string;
+  title: string;
+  description?: string;
+  room_name: string;
+  meeting_url?: string;
+  recording_url?: string;
+  recurring_config?: Record<string, string | number | boolean>;
+  metadata?: Record<string, any>;
+  start_at: string;
+  end_at: string;
+  actual_end_at?: string | null;
+  status: 'scheduled' | 'live' | 'completed' | 'cancelled';
+  version?: number;
+  created_at?: string;
+  updated_at?: string;
+  courses?: Course;
+}
+
+export interface LiveClassDTO {
+  id: string;
+  course_id: string;
+  teacher_id: string;
+  title: string;
+  description?: string;
+  room_name: string;
+  meeting_url?: string;
+  recording_url?: string;
+  recurring_config?: Record<string, string | number | boolean>;
+  metadata?: Record<string, any>;
+  start_at: string;
+  end_at: string;
+  actual_end_at?: string | null;
+  status: 'scheduled' | 'live' | 'completed' | 'cancelled';
+  version?: number;
+  updated_at?: string;
+  course?: CourseDTO;
+}
+
+export interface Attendance {
+  id: string;
+  live_class_id: string;
+  student_id: string;
+  join_time: string;
+  leave_time?: string;
+  duration?: number;
+  is_present: boolean;
+  created_at?: string;
+}
+
+export interface AttendanceDTO {
+  id: string;
+  live_class_id: string;
+  student_id: string;
+  join_time: string;
+  leave_time?: string;
+  duration?: number;
+  is_present: boolean;
+  created_at?: string;
+  student?: UserDTO;
+}
+
+export interface Material {
+  id: string;
+  course_id: string;
+  teacher_id: string;
+  title: string;
+  description?: string;
+  file_url: string;
+  file_type?: string;
+  version?: number;
+  created_at: string;
+  updated_at?: string;
+  courses?: Course;
+}
+
+export interface MaterialDTO {
+  id: string;
+  course_id: string;
+  teacher_id: string;
+  title: string;
+  description?: string;
+  file_url: string;
+  file_type?: string;
+  version?: number;
+  created_at: string;
+  updated_at?: string;
+  course?: CourseDTO;
+}
+
+export interface Discussion {
+  id: string;
+  course_id: string;
+  user_id: string;
+  parent_id?: string;
+  title?: string;
+  content: string;
+  version?: number;
+  created_at: string;
+  updated_at?: string;
+  users?: {
+    id: string;
+    full_name: string;
+    email: string;
+  };
+}
+
+export interface DiscussionDTO {
+  id: string;
+  course_id: string;
+  user_id: string;
+  parent_id?: string;
+  title?: string;
+  content: string;
+  version?: number;
+  created_at: string;
+  updated_at?: string;
+  user?: UserDTO;
+}
+
+export interface SystemLog {
+  id?: string;
+  level: string;
+  category: string;
+  message: string;
+  metadata?: Record<string, any>;
+  user_id?: string;
+  course_id?: string;
+  resource_id?: string;
+  created_at?: string;
+  users?: {
+    full_name: string;
+    email: string;
+  };
+}
+
+export interface SystemLogDTO {
+  id?: string;
+  level: string;
+  category: string;
+  message: string;
+  metadata?: Record<string, unknown>;
+  user_id?: string;
+  course_id?: string;
+  resource_id?: string;
+  created_at?: string;
+  user?: UserDTO;
+}
+
+export interface AntiCheatLog {
+  id?: string;
+  user_id: string;
+  course_id: string;
+  resource_id?: string;
+  type: string;
+  message?: string;
+  metadata?: Record<string, unknown>;
+  created_at?: string;
+}
+
+export interface AntiCheatLogDTO {
+  id: string;
+  user_id: string;
+  course_id: string;
+  resource_id?: string;
+  type: string;
+  message?: string;
+  metadata?: Record<string, unknown>;
+  created_at: string;
+  user?: UserDTO;
+  course?: CourseDTO;
+}
+
+export interface SupportTicket {
+  id: string;
+  user_id: string;
+  subject: string;
+  message: string;
+  status: 'open' | 'in_progress' | 'resolved' | 'closed';
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  category?: string;
+  assigned_to?: string;
+  resolved_at?: string;
+  metadata?: Record<string, unknown>;
+  version?: number;
+  created_at: string;
+  updated_at?: string;
+  users?: {
+    full_name: string;
+    email: string;
+  };
+}
+
+export interface SupportTicketDTO {
+  id: string;
+  user_id: string;
+  subject: string;
+  message: string;
+  status: 'open' | 'in_progress' | 'resolved' | 'closed';
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  category?: string;
+  assigned_to?: string;
+  resolved_at?: string;
+  metadata?: Record<string, unknown>;
+  version?: number;
+  created_at: string;
+  updated_at?: string;
+  user?: UserDTO;
+}
+
+export interface Setting {
+  key: string;
+  value: string | number | boolean | Record<string, string | number | boolean>;
+  updated_at?: string;
+}
+
+export interface SettingDTO {
+  key: string;
+  value: string | number | boolean | Record<string, unknown>;
+}
+
+export interface PushSubscription {
+  id: string;
+  user_id: string;
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface PushSubscriptionDTO {
+  id: string;
+  user_id: string;
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+  created_at: string;
+}
+
+export interface Invite {
+  id: string;
+  token_hash: string;
+  email?: string;
+  role: UserRole;
+  type: 'email_bound' | 'role_only';
+  created_by?: string;
+  created_at: string;
+  expires_at: string;
+  used_at?: string;
+}
+
+export interface InviteDTO {
+  id: string;
+  email?: string;
+  role: UserRole;
+  type: 'email_bound' | 'role_only';
+  created_at: string;
+  expires_at: string;
+  used_at?: string;
+}
+
+/**
+ * Database Agnostic Interfaces
+ */
+export interface DatabaseError {
+  code: string;
+  message: string;
+  details?: string;
+  hint?: string;
+}
+
+export interface DatabaseResponse<T> {
+  data: T | null;
+  error: DatabaseError | null;
+  count?: number | null;
+}
+
+/**
+ * Type Guards
+ */
+export function isAssignment(obj: unknown): obj is Assignment {
+    return (obj as Assignment)?.questions !== undefined &&
+           (obj as Assignment)?.due_date !== undefined &&
+           !Object.prototype.hasOwnProperty.call(obj, 'attempts_allowed');
+}
+
+export function isQuiz(obj: unknown): obj is Quiz {
+    return (obj as Quiz)?.questions !== undefined &&
+           (obj as Quiz)?.attempts_allowed !== undefined;
+}
+
+export function isAssignmentDTO(obj: unknown): obj is AssignmentDTO {
+    return (obj as AssignmentDTO)?.questions !== undefined &&
+           (obj as AssignmentDTO)?.due_date !== undefined &&
+           !Object.prototype.hasOwnProperty.call(obj, 'attempts_allowed');
+}
+
+export function isQuizDTO(obj: unknown): obj is QuizDTO {
+    return (obj as QuizDTO)?.questions !== undefined &&
+           (obj as QuizDTO)?.attempts_allowed !== undefined;
+}
+
+// ============================================================================
+// Certificates
+// ============================================================================
+export interface Certificate {
+  id: string;
+  user_id: string;
+  course_id: string;
+  code: string;
+  title?: string | null;
+  recipient_name?: string | null;
+  course_title?: string | null;
+  final_grade?: number | null;
+  template: string;
+  pdf_url?: string | null;
+  issued_by?: string | null;
+  issued_at: string;
+  revoked_at?: string | null;
+  revoked_reason?: string | null;
+  metadata?: Record<string, unknown>;
+  created_at?: string;
+  updated_at?: string;
+  users?: { full_name: string; email: string };
+  courses?: { title: string };
+}
+
+export interface CertificateDTO {
+  id: string;
+  user_id: string;
+  course_id: string;
+  code: string;
+  title: string;
+  recipient_name: string;
+  course_title: string;
+  final_grade: number | null;
+  template: string;
+  template_name: string;
+  template_accent: string;
+  template_body: string;
+  branding?: CertificateBranding;
+  pdf_url: string | null;
+  issued_at: string;
+  revoked: boolean;
+  revoked_reason: string | null;
+}
+
+// ============================================================================
+// Proctoring violations
+// ============================================================================
+export type ViolationSeverity = 'INFO' | 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+
+export interface Violation {
+  id?: string;
+  session_id: string;
+  user_id?: string | null;
+  user_email?: string | null;
+  assessment_id?: string | null;
+  assessment_type: string;
+  assessment_title?: string | null;
+  kind: string;
+  severity: ViolationSeverity;
+  message?: string | null;
+  payload?: Record<string, unknown>;
+  evidence_url?: string | null;
+  timestamp: string;
+  created_at?: string;
+  users?: { full_name: string; email: string };
+}
+
+export interface ViolationDTO {
+  id: string;
+  session_id: string;
+  user_id: string | null;
+  user_name: string;
+  assessment_id: string | null;
+  assessment_type: string;
+  assessment_title: string;
+  kind: string;
+  severity: ViolationSeverity;
+  message: string;
+  timestamp: string;
+}
+
+export interface ProctoredSessionDTO {
+  session_id: string;
+  user_id: string | null;
+  user_name: string;
+  user_email: string;
+  assessment_id: string | null;
+  assessment_title: string;
+  assessment_type: string;
+  started_at: string;
+  last_activity: string;
+  violation_count: number;
+  high_severity_count: number;
+  status: 'clean' | 'warning' | 'flagged';
+  is_online: boolean;
+}
+
+// ============================================================================
+// Study sessions / progress
+// ============================================================================
+export interface StudySession {
+  id?: string;
+  user_id: string;
+  course_id?: string | null;
+  lesson_id?: string | null;
+  label?: string | null;
+  started_at: string;
+  ended_at?: string | null;
+  focus_seconds: number;
+  idle_seconds: number;
+  created_at?: string;
+  updated_at?: string;
+  courses?: { title: string };
+}
+
+export interface StudySessionDTO {
+  id: string;
+  course_id: string | null;
+  course_title: string;
+  label: string;
+  started_at: string;
+  ended_at: string | null;
+  focus_seconds: number;
+  idle_seconds: number;
+}
+
+export interface StudyProgressSummaryDTO {
+  total_focus_seconds: number;
+  total_sessions: number;
+  streak_days: number;
+  daily: Array<{ date: string; focus_seconds: number }>;
+  per_course: Array<{ course_id: string; course_title: string; focus_seconds: number }>;
+}
+
+// ============================================================================
+// Topics (curriculum grouping)
+// ============================================================================
+export interface Topic {
+  id: string;
+  course_id: string;
+  title: string;
+  description?: string | null;
+  order_index: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface TopicDTO {
+  id: string;
+  course_id: string;
+  title: string;
+  description: string;
+  order_index: number;
+}
+
+// ============================================================================
+// Certificate requests (student apply → teacher review → admin approval)
+// ============================================================================
+export type CertificateRequestStatus = 'pending' | 'teacher_approved' | 'approved' | 'rejected';
+
+export interface CertificateRequest {
+  id: string;
+  user_id: string;
+  course_id: string;
+  status: CertificateRequestStatus;
+  message?: string | null;
+  decision_reason?: string | null;
+  reviewed_by?: string | null;
+  reviewed_at?: string | null;
+  teacher_reviewed_by?: string | null;
+  teacher_reviewed_at?: string | null;
+  teacher_note?: string | null;
+  certificate_id?: string | null;
+  metadata?: Record<string, unknown>;
+  created_at?: string;
+  updated_at?: string;
+  users?: { full_name: string; email: string };
+  courses?: { title: string; teacher_id?: string };
+}
+
+export interface CertificateRequestDTO {
+  id: string;
+  user_id: string;
+  course_id: string;
+  student_name: string;
+  course_title: string;
+  status: CertificateRequestStatus;
+  message: string;
+  decision_reason: string;
+  teacher_note: string;
+  certificate_id: string | null;
+  created_at: string | null;
+  reviewed_at: string | null;
+  teacher_reviewed_at: string | null;
+}
+
+/** Admin-managed certificate template (stored in the `settings` table). */
+/** Institution branding printed on certificates (snapshotted at issuance). */
+export interface CertificateBranding {
+  institution_name?: string;
+  institution_subtitle?: string;
+  /** PNG/JPEG data URL, resized client-side before saving. */
+  logo_data_url?: string;
+  signer_left?: string;
+  signer_right?: string;
+}
+
+export interface CertificateTemplate extends CertificateBranding {
+  id: string;
+  name: string;
+  title: string;
+  accent: string;
+  body: string;
+  is_default?: boolean;
+}
