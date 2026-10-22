@@ -1,5 +1,5 @@
 # Roadmap (legacy parity)
-- [ ] Audit the newly uploaded Smart-main.zip against every student, teacher, and administrator sidebar page; deliver evidence-based gaps and a staged production-validation plan (planning only).
+- [x] Audit the newly uploaded Smart-main.zip against every student, teacher, and administrator sidebar page; deliver evidence-based gaps and a staged production-validation plan (planning only).
 - [x] Stage 1 (partial): view toggle, offline banner
 - [ ] Stage 1: DataToolbar, central export module
 - [ ] Stage 2: teacher list regressions (toggle/countdowns, quiz results, grading filters, dashboard links)
